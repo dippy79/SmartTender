@@ -1,0 +1,12 @@
+ {
+  "name": "smarttender-frontend",
+  "version": "1.0.0",
+  "description": "Frontend application for SmartTender platform",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
