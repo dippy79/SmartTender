@@ -1,0 +1,40 @@
+/// Local Configuration Template
+/// 
+/// Copy this file to local_config.dart and fill in your values.
+/// 
+/// This file is already gitignored, so your credentials won't be committed.
+/// 
+/// Example usage:
+/// 1. Copy this file: cp lib/config/local_config.dart.example lib/config/local_config.dart
+/// 2. Edit local_config.dart with your actual values
+/// 3. Or set environment variables instead (SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PIN, GEMINI_API_KEY)
+
+class LocalConfig {
+  // ============================================
+  // SUPABASE CONFIGURATION
+  // ============================================
+  
+  /// Supabase Project URL
+  /// Example: 'https://xxxxx.supabase.co'
+  static const String supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
+  
+  /// Supabase Anonymous Key (anon key)
+  /// Get this from Supabase Dashboard -> Settings -> API
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+  
+  // ============================================
+  // ADMIN PIN CONFIGURATION
+  // ============================================
+  
+  /// Admin PIN for owner access (used in registration screen)
+  /// Example: '1202' or any secure PIN
+  static const String adminPin = 'YOUR_ADMIN_PIN_HERE';
+  
+  // ============================================
+  // GEMINI AI CONFIGURATION
+  // ============================================
+  
+  /// Gemini API Key for AI features
+  /// Get this from Google AI Studio: https://makersuite.google.com/app/apikey
+  static const String geminiApiKey = 'YOUR_GEMINI_API_KEY_HERE';
+}
