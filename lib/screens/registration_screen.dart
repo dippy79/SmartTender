@@ -1,88 +1,107 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../config/app_config.dart';
-import '../main.dart';
-import 'home_screen.dart';
+import 'dashboard_screen.dart';
 
-class RegistrationScreen extends StatelessWidget {
+class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({super.key});
+
+  @override
+  State<RegistrationScreen> createState() => _RegistrationScreenState();
+}
+
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  bool isLogin = true;
+
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Color>(
-      valueListenable: appThemeColor,
-      builder: (context, p, _) {
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [p, p.withOpacity(0.7)], begin: Alignment.topLeft),
-            ),
-            child: Padding(
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Background Glows
+          Positioned(top: -100, right: -50, child: _glow(Colors.blue.withOpacity(0.2))),
+          Positioned(bottom: -100, left: -50, child: _glow(Colors.cyan.withOpacity(0.2))),
+
+          Center(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.business_center_rounded, size: 70, color: Colors.white),
-                  const SizedBox(height: 10),
-                  const Text("SMART TENDER", style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
-                  const SizedBox(height: 50),
-                  _field("Email ID", Icons.email_outlined),
-                  _field("Password", Icons.lock_outline, isPass: true),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: p, fixedSize: const Size(200, 50)),
-                    onPressed: () {}, child: const Text("REGISTER", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(isLogin ? "IDENTITY VERIFICATION" : "SYSTEM REGISTRATION",
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                        const SizedBox(height: 30),
+                        
+                        if (!isLogin) _input("Full Name", Icons.person_outline),
+                        _input("Email ID", Icons.alternate_email),
+                        if (!isLogin) _input("Mobile Number", Icons.phone_android_outlined),
+                        if (!isLogin) _input("Business Type (e.g. Civil)", Icons.business_center_outlined),
+                        _input("Password", Icons.lock_outline, hide: true),
+
+                        const SizedBox(height: 30),
+                        _actionBtn(),
+                        
+                        TextButton(
+                          onPressed: () => setState(() => isLogin = !isLogin),
+                          child: Text(isLogin ? "New User? Register System" : "Already Registered? Login",
+                              style: const TextStyle(color: Colors.cyanAccent, fontSize: 11)),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
-                  // Invisible Admin Bypass (No hint code)
-                  GestureDetector(
-                    onTap: () => _adminLogin(context),
-                    child: Text("System Login", style: TextStyle(color: Colors.white.withOpacity(0.1), fontSize: 10)),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  void _adminLogin(BuildContext context) {
-    final code = TextEditingController();
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      title: const Text("Master Key Required"),
-      content: TextField(controller: code, obscureText: true, decoration: const InputDecoration(hintText: "••••")),
-      actions: [TextButton(onPressed: () {
-        // Use AppConfig.adminPin instead of hardcoded value
-        // Set via environment variable ADMIN_PIN or local_config.dart
-        if (code.text == AppConfig.adminPin && AppConfig.adminPin.isNotEmpty) {
-          isSystemAdmin = true;
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-        } else if (AppConfig.adminPin.isEmpty) {
-          // Admin PIN not configured - show message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Admin PIN not configured. Please set ADMIN_PIN in environment or local_config.dart')),
-          );
-        } else {
-          // Wrong PIN - show error
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid PIN')),
-          );
-        }
-      }, child: const Text("Verify"))],
-    ));
-  }
-
-  Widget _field(String h, IconData i, {bool isPass = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+  Widget _input(String hint, IconData icon, {bool hide = false}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
       child: TextField(
-        obscureText: isPass,
+        obscureText: hide,
+        style: const TextStyle(fontSize: 14),
         decoration: InputDecoration(
-          prefixIcon: Icon(i, color: Colors.white70),
-          hintText: h, hintStyle: const TextStyle(color: Colors.white60),
-          filled: true, fillColor: Colors.white.withOpacity(0.1),
+          prefixIcon: Icon(icon, color: Colors.cyanAccent, size: 18),
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.05),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
         ),
       ),
     );
   }
+
+  Widget _actionBtn() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.cyanAccent,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        ),
+        onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardScreen())),
+        child: Text(isLogin ? "AUTHENTICATE" : "REGISTER", style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+      ),
+    );
+  }
+
+  Widget _glow(Color c) => Container(width: 300, height: 300, decoration: BoxDecoration(shape: BoxShape.circle, color: c, blurRadius: 100));
 }
