@@ -197,12 +197,24 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Expanded(flex: 3, child: _tableField("Name", (v) => items[index]['name'] = v)),
-          const SizedBox(width: 8),
-          Expanded(flex: 1, child: _tableField("Qty", (v) => setState(() => items[index]['qty'] = int.tryParse(v) ?? 0), isNum: true)),
-          const SizedBox(width: 8),
-          Expanded(flex: 2, child: _tableField("Rate", (v) => setState(() => items[index]['rate'] = double.tryParse(v) ?? 0.0), isNum: true)),
-          IconButton(icon: const Icon(Icons.close, color: Colors.redAccent, size: 20), onPressed: () => setState(() => items.removeAt(index))),
+          // Name field ko thoda zyada space (flex: 4)
+          Expanded(flex: 4, child: _tableField("Name", (v) => items[index]['name'] = v)),
+          const SizedBox(width: 6),
+          
+          // Qty field - Iska flex aur padding balance kiya hai
+          Expanded(flex: 2, child: _tableField("Qty", (v) => setState(() => items[index]['qty'] = int.tryParse(v) ?? 0), isNum: true)),
+          const SizedBox(width: 6),
+          
+          // Rate field
+          Expanded(flex: 3, child: _tableField("Rate", (v) => setState(() => items[index]['rate'] = double.tryParse(v) ?? 0.0), isNum: true)),
+          
+          // Delete Button
+          IconButton(
+            constraints: const BoxConstraints(), // Padding hatane ke liye
+            padding: const EdgeInsets.only(left: 4),
+            icon: const Icon(Icons.close, color: Colors.redAccent, size: 18), 
+            onPressed: () => setState(() => items.removeAt(index))
+          ),
         ],
       ),
     );
@@ -213,7 +225,15 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen> {
       onChanged: onC,
       keyboardType: isNum ? TextInputType.number : TextInputType.text,
       style: const TextStyle(color: Colors.white, fontSize: 13),
-      decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.white24, fontSize: 11), filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none)),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white24, fontSize: 11),
+        filled: true,
+        fillColor: Colors.white10,
+        // YAHAN CHANGE HAI: Content padding kam ki hai taaki text dikhe
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+      ),
     );
   }
 
