@@ -60,4 +60,4 @@ flutter run -d chrome
 - [ ] **Phase 6**: Payment Gateway Integration for Subscriptions
 
 ## ⚖️ License
-This project is proprietary and intended for authorized use by the SmartTender organization.
+This project is proprietary and intended for authorized use by the Author Amit Sharma.
