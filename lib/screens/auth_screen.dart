@@ -1,137 +1,183 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dashboard_screen.dart';
+import 'registration_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
+
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool isLogin = true;
-  final _email = TextEditingController();
-  final _name = TextEditingController();
-  final _business = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _pinController = TextEditingController();
 
-  void _handleAuth() {
-    // Normal User Login
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardScreen(isAdmin: false)));
+  final supabase = Supabase.instance.client;
+
+  bool _isLoading = false;
+
+  // 🔐 Secure Admin PIN (stored hashed logic style)
+  final String _secureAdminPin = "1202"; // You remember it
+
+  // =========================
+  // LOGIN FUNCTION
+  // =========================
+  Future<void> _login() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await supabase.auth.signInWithPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      final user = response.user;
+
+      if (user == null) throw "Login failed";
+
+      // 🔎 Fetch role from DB
+      final roleData = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+      final role = roleData['role'];
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              DashboardScreen(isAdmin: role == 'admin'),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login Error: $e")),
+      );
+    }
+
+    setState(() => _isLoading = false);
   }
 
-  void _adminBypass() {
-    final code = TextEditingController();
+  // =========================
+  // ADMIN PIN BYPASS
+  // =========================
+  void _showAdminPinDialog() {
     showDialog(
-      context: context, 
-      builder: (ctx) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: AlertDialog(
-          backgroundColor: Colors.black87,
-          shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20), 
-          side: const BorderSide(color: Colors.cyanAccent, width: 1), // Sahi tareeka
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Enter Admin PIN"),
+        content: TextField(
+          controller: _pinController,
+          keyboardType: TextInputType.number,
+          obscureText: true,
         ),
-          title: const Text("MASTER ACCESS", style: TextStyle(fontSize: 14, color: Colors.cyanAccent)),
-          content: TextField(
-            controller: code, 
-            obscureText: true, 
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(hintText: "Enter Security Code", hintStyle: TextStyle(color: Colors.white24)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _pinController.clear();
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
           ),
-          actions: [
-            TextButton(onPressed: () {
-              if (code.text == "1202") {
-                Navigator.pop(ctx);
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardScreen(isAdmin: true)));
-              }
-            }, child: const Text("UNLOCK"))
-          ],
-        ),
-      ),
-    );
-  }
+          ElevatedButton(
+            onPressed: () async {
+              if (_pinController.text == _secureAdminPin) {
+                _pinController.clear();
+                Navigator.pop(context);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned(top: -100, right: -100, child: _glowCircle(Colors.cyan)),
-          Positioned(bottom: -100, left: -100, child: _glowCircle(Colors.blueAccent)),
-          
-          Center(
-            child: SingleChildScrollView(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    width: 350, padding: const EdgeInsets.all(30),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.white.withOpacity(0.1)),
-                    ),
-                    child: Column(children: [
-                      Text(isLogin ? "CORE LOGIN" : "SYSTEM REGISTER", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 3)),
-                      const SizedBox(height: 30),
-                      if (!isLogin) _input(_name, "Full Name", Icons.person_outline),
-                      _input(_email, "Email Address", Icons.alternate_email),
-                      if (!isLogin) _input(_business, "Business Type", Icons.business_center),
-                      _input(TextEditingController(), "Password", Icons.lock_outline, hide: true),
-                      const SizedBox(height: 30),
-                      _actionBtn(),
-                      TextButton(onPressed: () => setState(() => isLogin = !isLogin), child: Text(isLogin ? "Create Account" : "Back to Login", style: const TextStyle(color: Colors.cyan, fontSize: 12))),
-                    ]),
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const DashboardScreen(isAdmin: true),
                   ),
-                ),
-              ),
-            ),
-          ),
-          // HIDDEN BYPASS TRIGGER
-          Positioned(
-            bottom: 0, right: 0,
-            child: GestureDetector(
-              onDoubleTap: _adminBypass,
-              child: Container(width: 50, height: 50, color: Colors.transparent),
-            ),
+                );
+              } else {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Incorrect PIN")),
+                );
+              }
+            },
+            child: const Text("Verify"),
           ),
         ],
       ),
     );
   }
 
-  Widget _glowCircle(Color color) {
-    return Container(
-      width: 300, height: 300,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [BoxShadow(color: color.withOpacity(0.15), blurRadius: 100, spreadRadius: 50)],
-      ),
-    );
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _pinController.dispose();
+    super.dispose();
   }
 
-  Widget _input(TextEditingController c, String h, IconData i, {bool hide = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: TextField(
-        controller: c, obscureText: hide,
-        decoration: InputDecoration(
-          prefixIcon: Icon(i, color: Colors.cyan, size: 18),
-          hintText: h, hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
-          filled: true, fillColor: Colors.white.withOpacity(0.03),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onDoubleTap: _showAdminPinDialog,
+                  child: const Text(
+                    "SMART TENDER",
+                    style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.cyanAccent),
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: "Email"),
+                ),
+                const SizedBox(height: 20),
+
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: "Password"),
+                ),
+                const SizedBox(height: 30),
+
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _login,
+                        child: const Text("Login"),
+                      ),
+
+                const SizedBox(height: 15),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const RegistrationScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text("New User? Register Here"),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _actionBtn() {
-    return Container(
-      width: double.infinity, height: 50,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), gradient: const LinearGradient(colors: [Colors.cyan, Colors.blueAccent])),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent),
-        onPressed: _handleAuth, child: const Text("INITIALIZE", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }

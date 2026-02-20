@@ -1,36 +1,109 @@
-// lib/screens/tender_stats_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../services/api_service.dart';
 
-class TenderStatsScreen extends StatelessWidget {
+class TenderStatsScreen extends StatefulWidget {
   const TenderStatsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF020617),
-      appBar: AppBar(title: const Text("SYSTEM ANALYTICS"), backgroundColor: Colors.transparent),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(children: [
-          _statRow("TOTAL BIDS", "452", Colors.cyanAccent),
-          const SizedBox(height: 20),
-          const Text("QUOTATION TRENDS (Weekly)", style: TextStyle(color: Colors.white38, fontSize: 12)),
-          const SizedBox(height: 10),
-          // Simple Chart Diagram Placeholder
-          Container(
-            height: 150,
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, crossAxisAlignment: CrossAxisAlignment.end, children: [
-              _bar(40), _bar(70), _bar(50), _bar(90), _bar(60), _bar(100),
-            ]),
+  State<TenderStatsScreen> createState() => _TenderStatsScreenState();
+}
+
+class _TenderStatsScreenState extends State<TenderStatsScreen> {
+  final ApiService _apiService = ApiService();
+
+  final List<ChartData> pieData = [
+    ChartData('Material', 45, Colors.cyanAccent),
+    ChartData('Labour', 25, Colors.blueAccent),
+    ChartData('Profit', 20, Colors.greenAccent),
+    ChartData('Tax/GST', 10, Colors.purpleAccent),
+  ];
+
+  Widget _buildLiveTicker() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _apiService.fetchLiveRates(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+              height: 35,
+              child: Center(child: LinearProgressIndicator(minHeight: 2)));
+        }
+        final rates = snapshot.data?['rates'] ?? {};
+        return Container(
+          height: 35,
+          color: Colors.cyanAccent.withOpacity(0.05),
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _tickerItem("STEEL: \$${(rates['STEEL'] is num) ? (rates['STEEL'] as num).toDouble().toStringAsFixed(2) : 'N/A'}", true),
+              _tickerItem("IRON: \$${(rates['IRON'] is num) ? (rates['IRON'] as num).toDouble().toStringAsFixed(2) : 'N/A'}", false),
+              _tickerItem("GOLD: \$${(rates['XAU'] is num) ? (rates['XAU'] as num).toDouble().toStringAsFixed(2) : 'N/A'}", true),
+            ],
           ),
-          const Divider(color: Colors.white10, height: 40),
-          const Text("Logic: Data fetched from Supabase real-time.", style: TextStyle(fontSize: 10, color: Colors.white24))
-        ]),
+        );
+      },
+    );
+  }
+
+  Widget _tickerItem(String text, bool up) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Row(
+        children: [
+          Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70)),
+          const SizedBox(width: 4),
+          Icon(up ? Icons.trending_up : Icons.trending_down, color: up ? Colors.greenAccent : Colors.redAccent, size: 14),
+        ],
       ),
     );
   }
 
-  Widget _bar(double h) => Container(width: 20, height: h, decoration: BoxDecoration(color: Colors.cyanAccent.withOpacity(0.5), borderRadius: BorderRadius.circular(5)));
-  Widget _statRow(String l, String v, Color c) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l), Text(v, style: TextStyle(fontSize: 24, color: c, fontWeight: FontWeight.bold))]);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("TENDER ANALYTICS")),
+      body: Column(
+        children: [
+          _buildLiveTicker(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Cost Breakdown", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 250,
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(20)),
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 40,
+                        sections: pieData
+                            .map((data) => PieChartSectionData(
+                                color: data.color,
+                                value: data.y,
+                                title: '${data.y.toInt()}%',
+                                radius: 50,
+                                titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ChartData {
+  ChartData(this.x, this.y, this.color);
+  final String x;
+  final double y;
+  final Color color;
 }

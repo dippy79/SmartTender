@@ -1,32 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'screens/auth_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'core/theme/app_theme.dart';
+import 'screens/registration_screen.dart';
 
-void main() async {
+Future<void> main() async {
+  // 1. Mandatory initialization
   WidgetsFlutterBinding.ensureInitialized();
-  // Supabase Init (Replace with your actual keys)
-  await Supabase.initialize(
-    url: 'https://your-project-url.supabase.co',
-    anonKey: 'your-anon-key',
-  );
-  runApp(const SmartTenderApp());
+  debugPrint(">>> APP INITIALIZING <<<");
+
+  // Default Fallback Values
+  String supabaseUrl = 'https://crzfwshhxetnbkfxpssy.supabase.co';
+  String supabaseKey = 'sb_publishable_sRMu7lj4qZwIHxiiXAHLlA_UctBrKQy';
+
+  try {
+    // 2. Load .env file
+    try {
+      await dotenv.load(fileName: ".env");
+      debugPrint("Environment loaded successfully");
+
+      // Update values if found in .env
+      supabaseUrl = dotenv.maybeGet('SUPABASE_URL') ?? supabaseUrl;
+      supabaseKey = dotenv.maybeGet('SUPABASE_ANON_KEY') ?? supabaseKey;
+    } catch (e) {
+      debugPrint("Environment file (.env) not found. Proceeding with default settings.");
+    }
+
+    // 3. Initialize Supabase
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabaseKey,
+    );
+    debugPrint("Supabase ready");
+
+  } catch (e) {
+    debugPrint("Initialization Warning: $e");
+  }
+
+  // 4. Start Application
+  runApp(const MyApp());
 }
 
-class SmartTenderApp extends StatelessWidget {
-  const SmartTenderApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Smart Tender Futuristic',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF020617), // Deep Space Blue
-        primarySwatch: Colors.cyan,
-        useMaterial3: true,
-      ),
-      home: const AuthScreen(),
+      title: 'Smart Tender Hub',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark,
+
+      // Safety Error Widget
+      builder: (context, widget) {
+        ErrorWidget.builder = (details) => Scaffold(
+          body: Center(
+            child: Text("UI Render Error: ${details.exception}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.redAccent)
+            ),
+          ),
+        );
+        return widget!;
+      },
+
+      home: const RegistrationScreen(),
     );
   }
 }

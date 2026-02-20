@@ -21,6 +21,7 @@
 /android/local.properties
 /android/key.properties
 /android/app/src/main/res/values/google-services.json
+android/.kotlin/
 *.jks
 *.keystore
 *.apk
@@ -62,3 +63,5 @@ lib/config/api_keys.dart
 /coverage/
 /doc/api/
 node_modules/
+.fake
+devtools_options.yaml
