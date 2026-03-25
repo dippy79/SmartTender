@@ -7,9 +7,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> fetchLiveRates() async {
     try {
-      final response = await http.get(Uri.parse(
-          '$baseUrl?access_key=$apiKey&base=USD&symbols=STEEL,IRON,XAU'));
-
+      final response = await http.get(Uri.parse('$baseUrl?access_key=$apiKey&base=USD&symbols=STEEL,IRON,XAU'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return {

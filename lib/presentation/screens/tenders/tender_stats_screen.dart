@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../services/api_service.dart';
+import '../../../services/api_service.dart';
 
 class TenderStatsScreen extends StatefulWidget {
   const TenderStatsScreen({super.key});
@@ -31,7 +31,7 @@ class _TenderStatsScreenState extends State<TenderStatsScreen> {
         final rates = snapshot.data?['rates'] ?? {};
         return Container(
           height: 35,
-          color: Colors.cyanAccent.withOpacity(0.05),
+          color: Colors.cyanAccent.withAlpha(13),
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
@@ -72,10 +72,13 @@ class _TenderStatsScreenState extends State<TenderStatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text("Cost Breakdown", style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  const SizedBox(height: 10),
+                      const SizedBox(height: 10),
                   Container(
                     height: 250,
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(20)),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(8),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: PieChart(
                       PieChartData(
                         sectionsSpace: 2,

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/boq_item.dart';
 import '../models/category_model.dart';
@@ -47,14 +48,14 @@ class DatabaseService {
     try {
       await supabase.from('tenders').update({'status': status}).match({'id': id});
     } catch (e) {
-      print("Update Status Error: $e");
+      developer.log("Update Status Error: $e");
     }
   }
 
   // 3. Save Tender
   Future<void> saveTender({
     required String businessType,
-    required List<BOQItem> items,
+    required List<BoqItem> items,
     required double totalBase,
     required double margin,
     double freight = 0.0,
@@ -78,7 +79,7 @@ class DatabaseService {
         'created_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      print("Save Error: $e");
+      developer.log("Save Error: $e");
     }
   }
 
@@ -97,7 +98,9 @@ class DatabaseService {
     try {
       final response = await fetchTenders();
       List<Map<String, dynamic>> tenders = List<Map<String, dynamic>>.from(response);
-      if (year != 'All') tenders = tenders.where((t) => t['created_at'].toString().contains(year)).toList();
+      if (year != 'All') {
+      tenders = tenders.where((t) => t['created_at'].toString().contains(year)).toList();
+      }
       tenders = tenders.take(limit).toList();
       if (tenders.isEmpty) return "No history found.";
       return tenders.map((t) => "Type: ${t['business_type']}, Margin: ${t['margin']}%").join(" | ");
@@ -109,7 +112,7 @@ class DatabaseService {
   // 6. Categories CRUD
   Future<List<BusinessCategory>> fetchCategories() async {
     final response = await supabase.from('business_categories').select().order('name');
-    return (response as List).map((map) => BusinessCategory.fromMap(map)).toList();
+    return List<Map<String, dynamic>>.from(response).map((map) => BusinessCategory.fromMap(map)).toList();
   }
   Future<void> addCategory(String name) async => await supabase.from('business_categories').insert({'name': name});
   Future<void> deleteCategory(String id) async => await supabase.from('business_categories').delete().match({'id': id});

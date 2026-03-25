@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../services/supabase_service.dart';
-import 'dashboard_screen.dart';
+import '../../../config/app_config.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -12,9 +11,8 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  bool isLogin = true;
   bool isLoading = false;
-  late final SupabaseService _service;
+
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -28,49 +26,68 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final List<String> _businessTypes = ['Contractor', 'Supplier', 'Engineer', 'Architect', 'Civil Worker'];
   final List<String> _categories = ['Civil', 'IT', 'Mechanical', 'Electrical', 'Private'];
 
-  @override
+@override
   void initState() {
     super.initState();
-    _service = SupabaseService();
   }
 
-  Future<void> _handleAuth() async {
+  Future<void> _handleSignup() async {
     setState(() => isLoading = true);
     final supabase = Supabase.instance.client;
 
     try {
-      if (isLogin) {
-        final response = await supabase.auth.signInWithPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        if (response.user != null) _goToDashboard(isAdmin: false);
-      } else {
-        final response = await supabase.auth.signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          data: {
-            'full_name': _nameController.text.trim(),
-            'phone': _phoneController.text.trim(),
-            'business_type': _selectedBusinessType,
-            'preferred_category': _selectedCategory,
-          },
-        );
+      // 1. Supabase Auth signup
+      final response = await supabase.auth.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        data: {
+          'full_name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'business_type': _selectedBusinessType,
+          'preferred_category': _selectedCategory,
+        },
+      );
 
-        if (response.user != null) {
-          await _service.updatePreferences(
-            response.user!.id,
-            _selectedBusinessType,
-            _selectedCategory
+      if (response.user != null) {
+        final userId = response.user!.id;
+
+        // 2. Insert into profiles table
+        await supabase.from('profiles').insert({
+          'id': userId,
+          'full_name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'business_type': _selectedBusinessType,
+          'preferred_category': _selectedCategory,
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+
+        // 3. Insert into user_roles table (default role: 'user')
+        await supabase.from('user_roles').insert({
+          'user_id': userId,
+          'role': 'user',
+          'is_blocked': false,
+        });
+
+        // Success - show message and pop back to login
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Registration Successful! Please check your email and login."),
+              backgroundColor: Colors.green,
+            ),
           );
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Registration Successful! Please Login.")));
-          setState(() => isLogin = true);
+          Navigator.pop(context);
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}"), backgroundColor: Colors.redAccent));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Registration failed: ${e.toString()}"), backgroundColor: Colors.redAccent),
+        );
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -93,24 +110,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              final secret = dotenv.env['ADMIN_BYPASS_CODE'] ?? '1202';
+              final secret = dotenv.env['ADMIN_BYPASS_CODE'] ?? AppConfig.adminPin;
               if (_bypassController.text == secret) {
+                _bypassController.clear();
                 Navigator.pop(context);
-                _goToDashboard(isAdmin: true);
+                Navigator.pop(context); // Back to auth gate
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Invalid Access Code")));
+                _bypassController.clear();
               }
-              _bypassController.clear();
             },
             child: const Text("VERIFY", style: TextStyle(color: Colors.cyanAccent)),
           )
         ],
       ),
     );
-  }
-
-  void _goToDashboard({required bool isAdmin}) {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DashboardScreen(isAdmin: isAdmin)));
   }
 
   @override
@@ -125,10 +139,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               color: Colors.transparent,
               child: Container(
                 padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+decoration: BoxDecoration( 
+   color: Colors.white.withValues(alpha: 0.05),
+    borderRadius: BorderRadius.circular(24),
+     border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -139,36 +153,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       child: const Icon(Icons.shield_outlined, color: Colors.cyanAccent, size: 48),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      isLogin ? "IDENTITY VERIFICATION" : "SYSTEM REGISTRATION",
+                    const Text(
+                      "SYSTEM REGISTRATION",
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3, color: Colors.cyanAccent)
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3, color: Colors.cyanAccent)
                     ),
                     const SizedBox(height: 40),
 
-                    if (!isLogin) _input("Full Name", Icons.person_outline, _nameController),
+                    _input("Full Name", Icons.person_outline, _nameController),
                     _input("Email ID", Icons.alternate_email, _emailController),
-                    if (!isLogin) _input("Mobile Number", Icons.phone_android_outlined, _phoneController),
+                    _input("Mobile Number", Icons.phone_android_outlined, _phoneController),
 
-                    if (!isLogin) ...[
-                      _label("Business Type"),
-                      _dropdownField(_selectedBusinessType, _businessTypes, (v) => setState(() => _selectedBusinessType = v!)),
-                      const SizedBox(height: 15),
-                      _label("Preferred Tender Category"),
-                      _dropdownField(_selectedCategory, _categories, (v) => setState(() => _selectedCategory = v!)),
-                    ],
+                    _label("Business Type"),
+                    _dropdownField(_selectedBusinessType, _businessTypes, (v) => setState(() => _selectedBusinessType = v!)),
+                    const SizedBox(height: 15),
+                    _label("Preferred Tender Category"),
+                    _dropdownField(_selectedCategory, _categories, (v) => setState(() => _selectedCategory = v!)),
 
                     _input("Password", Icons.lock_outline, _passwordController, hide: true),
 
                     const SizedBox(height: 32),
-                    isLoading ? const CircularProgressIndicator(color: Colors.cyanAccent) : _actionBtn(),
+                    isLoading 
+                      ? const CircularProgressIndicator(color: Colors.cyanAccent) 
+                      : _actionBtn(),
 
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () => setState(() => isLogin = !isLogin),
-                      child: Text(
-                        isLogin ? "New User? Create Account" : "Already Registered? Sign In",
-                        style: const TextStyle(color: Colors.grey, fontSize: 12)
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Already Registered? Sign In",
+                        style: TextStyle(color: Colors.grey, fontSize: 12)
                       ),
                     ),
                   ],
@@ -200,10 +214,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.04),
+fillColor: Colors.white.withValues(alpha: 0.04),
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.05))),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.cyanAccent, width: 1)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.cyanAccent, width: 1))
         ),
       ),
     );
@@ -214,9 +228,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -237,10 +251,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
-        onPressed: _handleAuth,
-        child: Text(isLogin ? "AUTHENTICATE" : "COMPLETE REGISTRATION", style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 13)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.cyanAccent, 
+          foregroundColor: Colors.black, 
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
+          elevation: 0
+        ),
+        onPressed: _handleSignup,
+        child: const Text("COMPLETE REGISTRATION", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 13)),
       ),
     );
   }
 }
+

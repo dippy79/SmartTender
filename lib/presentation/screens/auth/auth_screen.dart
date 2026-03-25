@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dashboard_screen.dart';
+import 'package:provider/provider.dart';
+import '../../../presentation/providers/auth_provider.dart';
+import '../../../config/app_config.dart';
 import 'registration_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -15,56 +16,91 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _pinController = TextEditingController();
 
-  final supabase = Supabase.instance.client;
-
   bool _isLoading = false;
 
-  // 🔐 Secure Admin PIN (stored hashed logic style)
-  final String _secureAdminPin = "1202"; // You remember it
+  // Admin PIN from .env via AppConfig
+  final String adminPin = AppConfig.adminPin;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
 
   // =========================
-  // LOGIN FUNCTION
+  // LOGIN FUNCTION - USING PROVIDER
   // =========================
   Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Secret admin trigger: email='admin' + password='dippy79'
+    if (email == 'admin' && password == 'dippy79') {
+      _showBypassDialog();
+      setState(() => _isLoading = false);
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    try {
-      final response = await supabase.auth.signInWithPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    final authProvider = context.read<AuthProvider>();
+    
+    final success = await authProvider.login(email, password);
 
-      final user = response.user;
-
-      if (user == null) throw "Login failed";
-
-      // 🔎 Fetch role from DB
-      final roleData = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-      final role = roleData['role'];
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              DashboardScreen(isAdmin: role == 'admin'),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login Error: $e")),
-      );
+    if (!success) {
+      if (authProvider.errorMessage != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(authProvider.errorMessage!)),
+          );
+        }
+      }
     }
 
     setState(() => _isLoading = false);
   }
 
+  // Two-step admin bypass
+  void _showBypassDialog() {
+    final bypassController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Enter Bypass Code"),
+        content: TextField(
+          controller: bypassController,
+          obscureText: true,
+          autocorrect: false,
+          decoration: const InputDecoration(hintText: "Secret code"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (bypassController.text == AppConfig.bypassCode) {
+                Navigator.pop(context);
+                _showAdminPinDialog();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Wrong bypass code")),
+                );
+              }
+            },
+            child: const Text("Next"),
+          ),
+        ],
+      ),
+    );
+  }
+
   // =========================
-  // ADMIN PIN BYPASS
+  // ADMIN PIN BYPASS DIALOG
   // =========================
   void _showAdminPinDialog() {
     showDialog(
@@ -75,6 +111,7 @@ class _AuthScreenState extends State<AuthScreen> {
           controller: _pinController,
           keyboardType: TextInputType.number,
           obscureText: true,
+          autocorrect: false,
         ),
         actions: [
           TextButton(
@@ -85,23 +122,15 @@ class _AuthScreenState extends State<AuthScreen> {
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            onPressed: () async {
-              if (_pinController.text == _secureAdminPin) {
-                _pinController.clear();
+            onPressed: () {
+              if (_pinController.text == adminPin) {
                 Navigator.pop(context);
-
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const DashboardScreen(isAdmin: true),
-                  ),
-                );
+                context.read<AuthProvider>().bypassAsSuperAdmin();
               } else {
-                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Incorrect PIN")),
                 );
+                _pinController.clear();
               }
             },
             child: const Text("Verify"),
@@ -109,14 +138,6 @@ class _AuthScreenState extends State<AuthScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _pinController.dispose();
-    super.dispose();
   }
 
   @override
@@ -128,21 +149,19 @@ class _AuthScreenState extends State<AuthScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                GestureDetector(
-                  onDoubleTap: _showAdminPinDialog,
-                  child: const Text(
-                    "SMART TENDER",
-                    style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.cyanAccent),
-                  ),
+                const Text(
+                  "SMART TENDER",
+                  style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.cyanAccent),
                 ),
                 const SizedBox(height: 40),
 
                 TextField(
                   controller: _emailController,
                   decoration: const InputDecoration(labelText: "Email"),
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 20),
 
@@ -182,3 +201,4 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 }
+

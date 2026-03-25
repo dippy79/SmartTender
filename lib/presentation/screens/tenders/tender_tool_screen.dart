@@ -134,7 +134,7 @@ class _TenderToolScreenState extends State<TenderToolScreen> {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             decoration: BoxDecoration(
-              color: Colors.cyanAccent.withOpacity(0.1),
+color: Colors.cyanAccent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.cyanAccent),
             ),

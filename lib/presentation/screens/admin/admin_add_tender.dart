@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/supabase_service.dart';
+
+import '../../../services/supabase_client.dart';
 
 class AdminAddTenderScreen extends StatefulWidget {
   const AdminAddTenderScreen({super.key});
@@ -9,7 +10,7 @@ class AdminAddTenderScreen extends StatefulWidget {
 }
 
 class _AdminAddTenderScreenState extends State<AdminAddTenderScreen> {
-  final _service = SupabaseService();
+  final supabase = SupabaseClientHelper.client;
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _titleController = TextEditingController();
@@ -27,11 +28,11 @@ class _AdminAddTenderScreenState extends State<AdminAddTenderScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final orgId = await _service.getOrganizationId();
+      final orgId = await supabase.from('organizations').select('id').single().then((data) => data['id'] as String?);
       if (orgId == null) throw "Organization context missing. Please re-login.";
 
       // Corrected table name and multi-tenant logic
-      await _service.instance.from('tenders').insert({
+      await supabase.from('tenders').insert({
         'organization_id': orgId,
         'title': _titleController.text.trim(),
         'department': _deptController.text.trim(),
@@ -85,7 +86,7 @@ class _AdminAddTenderScreenState extends State<AdminAddTenderScreen> {
 
               const Text("Select Category", style: TextStyle(fontSize: 12, color: Colors.grey)),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 dropdownColor: const Color(0xFF151D24),
                 decoration: const InputDecoration(enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10))),
                 items: ["Civil", "IT", "Mechanical", "Private", "Electrical"]
@@ -142,6 +143,4 @@ class _AdminAddTenderScreenState extends State<AdminAddTenderScreen> {
     );
   }
 }
-extension on SupabaseService {
-  SupabaseClient get instance => Supabase.instance.client;
-}
+

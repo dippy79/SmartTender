@@ -11,7 +11,7 @@ import 'package:smart_tender/main.dart';
 void main() {
   testWidgets('Smart Tender app smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const SmartTenderApp(isAdmin: false));
+    await tester.pumpWidget(const SmartTenderApp());
 
     // Verify that the app renders without crashing
     await tester.pump();

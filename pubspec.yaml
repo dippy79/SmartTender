@@ -24,7 +24,12 @@ dependencies:
   intl: ^0.20.2
   share_plus: ^12.0.1
   google_generative_ai: ^0.4.7
+  animated_count_text: ^1.1.1
+  excel: ^4.0.2
+  file_picker: ^8.0.0
+  url_launcher: ^6.2.5
 
+  shared_preferences: ^2.5.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

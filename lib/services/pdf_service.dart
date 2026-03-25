@@ -7,7 +7,7 @@ class PdfService {
   static Future<void> generateAndSharePdf({
     required String businessType,
     required String clientName,
-    required List<BOQItem> items,
+    required List<BoqItem> items,
     required double subTotal,
     required double gstAmount,
     required double grandTotal,
@@ -31,7 +31,7 @@ class PdfService {
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
               headers: ['Item', 'Qty', 'Rate', 'Total'],
-              data: items.map((i) => [i.name, i.quantity, i.baseRate, i.quantity * i.baseRate]).toList(),
+data: items.map((i) => [i.name, i.quantity, i.baseRate, i.quantity * i.baseRate]).toList(),
             ),
             pw.SizedBox(height: 20),
             pw.Align(
@@ -54,3 +54,4 @@ class PdfService {
     await Printing.sharePdf(bytes: await pdf.save(), filename: 'Quotation.pdf');
   }
 }
+

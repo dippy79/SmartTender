@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import '../services/supabase_client.dart';
+import '../../../services/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TenderAggregatorPage extends StatefulWidget {
@@ -11,7 +11,7 @@ class TenderAggregatorPage extends StatefulWidget {
 }
 
 class _TenderAggregatorPageState extends State<TenderAggregatorPage> {
-  final SupabaseClient _client = SupabaseClientService.client;
+  final SupabaseClient _client = SupabaseClientHelper.client;
 
   late Future<List<Map<String, dynamic>>> _tendersFuture;
 
@@ -47,6 +47,10 @@ class _TenderAggregatorPageState extends State<TenderAggregatorPage> {
 
   String _getTypeLabel(bool isPrivate) {
     return isPrivate ? "Private" : "Government";
+  }
+
+  void _shareTender(String title, String department, String value, String link) {
+    SharePlus.instance.share(ShareParams(text: "Tender: $title\nDepartment: $department\nValue: ₹$value\n$link"));
   }
 
   @override
@@ -164,11 +168,7 @@ class _TenderAggregatorPageState extends State<TenderAggregatorPage> {
 
                             IconButton(
                               icon: const Icon(Icons.share),
-                              onPressed: () {
-                                Share.share(
-                                  "Tender: $title\nDepartment: $department\nValue: ₹$value\n$link",
-                                );
-                              },
+                              onPressed: () => _shareTender(title, department, value.toString(), link),
                             ),
                           ],
                         ),
@@ -184,3 +184,4 @@ class _TenderAggregatorPageState extends State<TenderAggregatorPage> {
     );
   }
 }
+

@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class SupabaseClientService {
-  static final SupabaseClient client = SupabaseClient(
-    'https://crzfwshhxetnbkfxpssy.supabase.co', // Replace with your Supabase URL
-    'sb_publishable_sRMu7lj4qZwIHxiiXAHLlA_UctBrKQy', // Replace with your anon/public key
-  );
+/// Use this to access Supabase client anywhere in the app
+/// Supabase is initialized ONCE in main.dart via AppConfig + .env
+class SupabaseClientHelper {
+  SupabaseClientHelper._();
+  static SupabaseClient get client => Supabase.instance.client;
 }

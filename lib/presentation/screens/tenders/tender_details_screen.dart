@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import '../models/tender_model.dart';
+import '../../../models/tender_model.dart';
+import '../../../core/theme/app_theme.dart';
+
+enum TenderType { private, government }
 
 class TenderDetailsScreen extends StatelessWidget {
   final Tender tender;
   const TenderDetailsScreen({super.key, required this.tender});
+
+  String get _link => tender.link ?? 'N/A (use tender ID: ${tender.id})';
 
   void _share() {
     final text = "📢 *New Tender Opportunity*\n\n"
@@ -13,17 +18,20 @@ class TenderDetailsScreen extends StatelessWidget {
         "💰 *Value:* ₹${tender.value.toStringAsFixed(0)}\n"
         "📅 *Deadline:* ${tender.deadline.toLocal().toString().split(' ')[0]}\n"
         "📂 *Category:* ${tender.category}\n\n"
-        "🔗 *Apply Here:* ${tender.link ?? 'Link Not Available'}\n\n"
+        "🔗 *Apply Here:* $_link\n\n"
         "Shared via Smart Tender App";
 
-    Share.share(text);
+    SharePlus.instance.share(ShareParams(text: text));
   }
 
   @override
   Widget build(BuildContext context) {
+    final type = tender.type as TenderType? ?? TenderType.government;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Tender Details"),
+        foregroundColor: AppTheme.goldPrimary,
+        backgroundColor: AppTheme.surfaceElevated.withValues(alpha: 0.85),
         actions: [
           IconButton(
             icon: const Icon(Icons.share_outlined),
@@ -40,20 +48,27 @@ class TenderDetailsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: tender.type == TenderType.private ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                color: type == TenderType.private 
+                  ? AppTheme.accentRed.withValues(alpha: 0.1) 
+                  : AppTheme.accentGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                tender.type == TenderType.private ? "PRIVATE SECTOR" : "GOVERNMENT SECTOR",
+                type == TenderType.private ? "PRIVATE SECTOR" : "GOVERNMENT SECTOR",
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: tender.type == TenderType.private ? Colors.orange : Colors.green
+                  color: type == TenderType.private 
+                    ? AppTheme.accentRed 
+                    : AppTheme.accentGreen,
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            Text(tender.title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, height: 1.2)),
+            Text(
+              tender.title, 
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, height: 1.2, color: AppTheme.textPrimary),
+            ),
             const SizedBox(height: 24),
 
             _buildInfoRow(Icons.business_center, "Department", tender.department),
@@ -68,13 +83,13 @@ class TenderDetailsScreen extends StatelessWidget {
               height: 55,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Link opening logic can be added here
+                  // Link opening logic - use url_launcher for tender.link
                 },
                 icon: const Icon(Icons.open_in_new),
                 label: const Text("VIEW OFFICIAL DOCUMENT", style: TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyanAccent,
-                  foregroundColor: Colors.black,
+                  backgroundColor: AppTheme.accentBlue,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -92,23 +107,29 @@ class TenderDetailsScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: Colors.cyanAccent, size: 24),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceElevated.withValues(alpha: 0.5), 
+              borderRadius: BorderRadius.circular(12)
+            ),
+            child: Icon(icon, color: AppTheme.accentBlue, size: 24),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              Text(value, style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isHighlight ? Colors.cyanAccent : Colors.white
-              )),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                Text(value, style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isHighlight ? AppTheme.goldPrimary : AppTheme.textPrimary,
+                )),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 }
+

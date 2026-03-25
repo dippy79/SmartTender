@@ -81,12 +81,12 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                     padding: const EdgeInsets.all(16),
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
-                      color: isUser ? Colors.cyan.withOpacity(0.8) : Colors.grey.shade900,
+color: isUser ? Colors.cyan.withValues(alpha: 0.8) : Colors.grey.shade900,
                       borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: isUser ? const Radius.circular(16) : Radius.zero,
-                        bottomRight: isUser ? Radius.zero : const Radius.circular(16),
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                        bottomLeft: isUser ? Radius.circular(16) : Radius.zero,
+                        bottomRight: isUser ? Radius.zero : Radius.circular(16),
                       ),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -128,3 +128,4 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     super.dispose();
   }
 }
+
