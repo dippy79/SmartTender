@@ -1,107 +1,21 @@
-# SmartTender 🏗️✨
-
-![Flutter](https://flutter.dev/images/logo/flutter-logo-sharing.png)
-
-**AI-Powered Tender Management System** for Indian contractors. Track tenders, calculate BOQs with live commodity rates, analyze opportunities with Gemini AI, and win more bids.
-
-[![Flutter](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.4+-green.svg)](https://dart.dev)
-[![Status](https://img.shields.io/badge/Status-0_Issues-brightgreen.svg)](https://dart.dev)
-
-## 🚀 Key Features
-- **Zero-Issue Analysis** - Clean Dart code, production-ready
-- **AI Assistant** - Gemini-powered tender strategy & bidding advice
-- **Live Commodity Ticker** - Real-time Steel, Cement, Bitumen rates
-- **Advanced BOQ Calculator** - GST-compliant, PDF/Excel export
-- **Smart Tender Aggregator** - Multi-source dashboard with sharing
-- **Excel Bulk Import** - Validate & process hundreds of tenders
-- **Admin Dashboard** - User management, rate updates
-
-## 🛠️ Tech Stack
-| Frontend | Backend | AI/ML | Tools |
-|----------|---------|-------|-------|
-| Flutter 3.19+ (Material 3) | Supabase PostgreSQL | Google Gemini Pro | share_plus 12.0.1 |
-| Google Fonts (Playfair Display) | Real-time DB |  | file_picker, excel |
-
-## 📱 Demo Screenshots
-*(Add after testing - Web/Mobile captures)*
-
-## 🎯 Quick Start
-
-### 1. Clone & Setup
-```bash
-git clone https://github.com/yourusername/smart_tender.git
+SmartTender 🏗️✨AI-Powered Tender Management System for Indian contractors.
+Track tenders, calculate BOQs with live commodity rates,
+and win more bids.🚀 Key Features0-Issue Codebase - Clean, 
+production-ready Dart with Material 3 UI.AI Assistant - Gemini-powered tender analysis and bidding advice.Real-time Commodity Ticker - Live Steel, Cement, Bitumen prices.Professional BOQ Calculator - Auto-calculates with GST, exports PDF/Excel.Tender Aggregator - Multi-source centralized dashboard.Excel Import/Export - Bulk tender management for large projects.🛠️ Tech StackFrontendBackendAI/MLToolsFlutter 3.19+SupabaseGoogle GeminiSharePlus, PDFMaterial 3PostgreSQLExcel, FilePicker🎯 Getting StartedSetupBashgit clone https://github.com/dippy79/SmartTender.git
 cd smart_tender
 flutter pub get
-```
-
-### 2. Configure Environment
-```bash
-cp .env.example .env
-# Edit .env with your Supabase + Gemini keys
-```
-
-**.env.example:**
-```
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_supabase_anon_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### 3. Run
-```bash
-flutter run -d chrome  # Web
-# or
-flutter run            # Mobile (Android/iOS)
-```
-
-## 🔐 Security & Best Practices
-✅ **No hardcoded secrets** - All from `.env` via `flutter_dotenv`
-✅ **.gitignore configured** for `.env`, build artifacts
-✅ **0 linter warnings** - `flutter analyze` clean
-✅ **Supabase Row Level Security** ready (configure in dashboard)
-
-## 📁 Project Structure
-```
-lib/
-├── config/           # Env & API config (.env loaded)
-├── core/             # AppTheme, utils
-├── models/           # Tender, BOQ, CommodityRate
-├── services/         # Supabase repos, AI service
-├── presentation/     # Screens & responsive widgets
-└── main.dart
-```
-
-## 🧪 Testing & Quality
-```bash
-flutter analyze     # 0 issues guaranteed
-flutter test        # Widget tests
-flutter format .    # Auto-format
-```
-
-## 🚀 Deployment Targets
-| Platform | Command |
-|----------|---------|
-| Web | `flutter build web --release` |
-| Android | `flutter build apk --release` |
-| iOS | `flutter build ios --release` |
-
-## 🔄 Contributing
-1. Fork repository
-2. `git checkout -b feature/your-feature`
-3. Commit: `git commit -m "feat: add your feature"`
-4. Push & PR: `git push origin feature/your-feature`
-
-**Code style**: Follow Dart analyzer, keep 0 issues.
-
-## 📄 License
-MIT License © 2024 Amit Sharma
-
-## 🙏 Acknowledgments
-- [Flutter](https://flutter.dev) Team
-- [Supabase](https://supabase.com) 
-- [Google Gemini](https://ai.google.dev)
-
----
-
-⭐ **Star if this powers your tender business!** 🏆
+# Configure your .env file
+flutter run
+Environment ConfigurationCopy .env.example to .env and add your keys:Code snippetSUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEY=your_gemini_api_key
+⚠️ SECURITY: Never commit .env or API keys. .gitignore is configured to protect your secrets.🔐 Security Check✅ No hardcoded secrets found. All config from .env via flutter_dotenv.✅ .env and secrets.dart are strictly ignored in .gitignore.📂 Project Structurelib/
+├── config/         # API keys & environment configuration
+├── core/           # Theme, constants, and utilities
+├── models/         # Data models
+├── services/       # Repositories & Supabase services
+├── presentation/   # UI Screens & reusable widgets
+└── main.dart       # Entry point
+🧪 Testing & QualityBashflutter analyze     # Should show 0 issues
+flutter test        # Run unit/widget tests
+🚀 DeploymentWeb: flutter build web --releaseAndroid: flutter build apk --releaseiOS: flutter build ios --release⚖️ LicenseThis project is proprietary and intended for authorized use by the Author Amit Sharma.🙏 AcknowledgmentsFlutter & Dart TeamsSupabase TeamGoogle Gemini AI⭐ Star this repo if it helps your tender business!
