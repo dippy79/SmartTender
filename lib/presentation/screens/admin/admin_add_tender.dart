@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 import '../../../services/supabase_client.dart';
 
 class AdminAddTenderScreen extends StatefulWidget {
@@ -31,7 +32,6 @@ class _AdminAddTenderScreenState extends State<AdminAddTenderScreen> {
       final orgId = await supabase.from('organizations').select('id').single().then((data) => data['id'] as String?);
       if (orgId == null) throw "Organization context missing. Please re-login.";
 
-      // Corrected table name and multi-tenant logic
       await supabase.from('tenders').insert({
         'organization_id': orgId,
         'title': _titleController.text.trim(),

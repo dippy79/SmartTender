@@ -1,7 +1,6 @@
 SmartTender 🏗️✨AI-Powered Tender Management System for Indian contractors.
 Track tenders, calculate BOQs with live commodity rates,
-and win more bids.🚀 Key Features0-Issue Codebase - Clean, 
-production-ready Dart with Material 3 UI.AI Assistant - Gemini-powered tender analysis and bidding advice.Real-time Commodity Ticker - Live Steel, Cement, Bitumen prices.Professional BOQ Calculator - Auto-calculates with GST, exports PDF/Excel.Tender Aggregator - Multi-source centralized dashboard.Excel Import/Export - Bulk tender management for large projects.🛠️ Tech StackFrontendBackendAI/MLToolsFlutter 3.19+SupabaseGoogle GeminiSharePlus, PDFMaterial 3PostgreSQLExcel, FilePicker🎯 Getting StartedSetupBashgit clone https://github.com/dippy79/SmartTender.git
+✅ 0 Issues Fixed - SharePlus syntax, deprecations resolved. Production-ready Dart with Material 3 UI.
 cd smart_tender
 flutter pub get
 # Configure your .env file
